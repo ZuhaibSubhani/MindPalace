@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.blob {
+  background: conic-gradient(from 2.35rad, #8533ff, rgba(246, 0, 225, 0.6));
+}
+.text-reveal {
+  display: inline;
+  background: linear-gradient(
+    to right,
+    rgba(var(--opacity-color), 1) 0%,                     /* Fully opaque */
+    rgba(var(--opacity-color), 1) 50%,                    /* Fully opaque */
+    rgba(var(--opacity-color), 0.2) 50%,                  /* Starts fading */
+    rgba(var(--opacity-color), 0.2) 100%                  /* More transparent */
+  );
+  background-clip: text;
+  background-size: 200% 100%;
+  background-position: right bottom;
+  color: transparent;
+  background-repeat: no-repeat;
+}
+
