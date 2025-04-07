@@ -1,89 +1,147 @@
-"use client"
-import { use, useEffect, useState } from "react";
-import {motion} from "motion/react"
-import { AnimatePresence } from "motion/react";
+"use client";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+
+// Main Thoughts Component
 function Thoughts() {
-    const[thoughts,setThoughts] = useState([{id:1,note:"Chat application with real-time messaging features using WebSockets. Users can create chat rooms, send messages The app supports user authentication and authorization using OAuth 2.0 and JWT tokens.",title:"happy",link:"https://twitter.com/abhisheknaironx/status/1903360154814517490?ref_src=twsrc%5Etfw"}])
-    const [selected, setSelected] = useState(null);
+  const { data: session, status } = useSession(); // Use useSession to get session data
+  const [thoughts, setThoughts] = useState([]);
+  const [selected, setSelected] = useState(null);
+
+  // Fetch thoughts from the API
+  const fetchThoughts = async (userId) => {
+    try {
+      const response = await axios.get(`/api/routes?action=getBrain&userId=${userId}`);
+      setThoughts(response.data.brains || []);
+    } catch (error) {
+      console.error("Error fetching thoughts:", error);
+    }
+    console.log(thoughts);
+  };
+
+  // Fetch thoughts when the session is available
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.id) {
+      fetchThoughts(session.user.id); // Pass session.user.id to fetchThoughts
+    }
+  }, [status, session]);
+
   return (
-    <div style={{zIndex:10 ,position:"relative"}}>
-     <Card thoughts={thoughts} setSelected={setSelected}/>
-     <AnimatePresence>
-     {selected&&<CardOpen thought={selected} setSelected={setSelected}/>}
-     </AnimatePresence>
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 text-white p-10">
+      <h1 className="text-4xl font-bold text-center mb-12">My Thoughts</h1>
+      <CardGrid thoughts={thoughts} setSelected={setSelected} />
+      <AnimatePresence>
+        {selected && <CardOpen thought={selected} setSelected={setSelected} />}
+      </AnimatePresence>
     </div>
-  )
+  );
 }
 
-
-function Card({ thoughts , setSelected}) {
+// Card Grid
+function CardGrid({ thoughts, setSelected }) {
   return (
-    <motion.div className="my-40 mx-10 border inline-block p-4 rounded-lg shadow-lg max-w-2xl max-h-2xl"
-    whileHover={{scale:1.1}}
-    whileTap={{scale:0.9}}
-    transition={{duration:0.2}}
-    
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       {thoughts.map((thought) => (
-        <div key={thought.title} className="mb-6 p-4 max-w-2xl" onClick={()=>setSelected(thought)}>
-          
-          <div className="text-2xl font-bold ">{thought.title}   </div>
-            {/* <iframe style={{pointerEvents:"auto"}}
-            className="w-full h-full"
-             
-              src="https://www.youtube.com/embed/cr4wnsLI_Xw?si=m6FS4C9ONrypcP-n" 
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            ></iframe> */}
-           
-           <TwitterEmbed twitterUrl={thought.link}/>
-          
-        </div>
+        <motion.div
+        onClick={() =>
+          setSelected(thought)}
+          key={thought.id}
+          className="bg-gray-900 border border-gray-700 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="text-xl font-bold mb-3 capitalize">{thought.title}</div>
+          <div className="mb-4 aspect-video overflow-hidden rounded-md">
+            {thought.type === "youtube" ? (
+              <YouTubeEmbed youtubeUrl={ convertToEmbedUrl( thought.link)} />
+            ) : (
+              <TwitterEmbed twitterUrl={convertToTwitterEmbedUrl(thought.link)} />
+            )}
+          </div>
+          <p className="text-gray-300">{thought.note}</p>
+          <button
+            className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition"
+            onClick={() =>
+               setSelected(thought)}
+          >
+            View Details
+          </button>
+        </motion.div>
       ))}
+    </div>
+  );
+}
+
+// Modal Component
+function CardOpen({ thought, setSelected }) {
+  console.log("inside card open", );
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      onClick={() => setSelected(null)}
+    >
+      <motion.div
+        className="bg-gray-950 rounded-lg p-8 max-w-3xl w-full shadow-2xl"
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.9 }}
+        transition={{ duration: 0.1 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="aspect-video mb-4 rounded overflow-hidden">
+          {thought.type === "youtube" ? (
+            <YouTubeEmbed youtubeUrl={convertToEmbedUrl( thought.link)} />
+          ) : (
+            <TwitterEmbed twitterUrl={convertToTwitterEmbedUrl(thought.link)} />
+          )}
+        </div>
+        <div className="text-3xl font-semibold mb-2 capitalize">{thought.title}</div>
+        <p className="text-gray-300 text-lg">{thought.description}</p>
+      </motion.div>
     </motion.div>
   );
 }
-function CardOpen({thought,setSelected}){
-  return  <motion.div
-  className="fixed inset-0 flex justify-center items-center backdrop-blur-sm"
-  initial={{opacity:0}}
-  animate={{opacity:1}}
-  style={{backgroundColor:"rgba(0,0,0,0.5)"}}
-  transition={{duration:0.5}}
-  onClick={()=>setSelected(null)}
-  >
-    <motion.div className="w-150  bg-gray-950 p-4 rounded-lg shadow-lg"
-  initial={{scale:0.8}}
-  animate={{scale:1}}
-  exit={{scale:0.8}}
-  transition={{duration:0.2}}
-  onClick={(e)=>e.stopPropagation()}
-  >
-   
-    <div className="h-full w-full max-w-40 m-0 p-0">
-   <TwitterEmbed twitterUrl={thought.link}/>
-    </div>
-    <div className="font-semibold text-5xl p-4">{thought.title}</div>
 
-    <div className="p-4 px-8 font-normal text-xl">
-      {thought.note}
-    </div>
-  </motion.div></motion.div>
+// YouTube Embed
+function YouTubeEmbed({ youtubeUrl }) {
+  return (
+    <iframe
+      className="w-full h-full"
+      src={youtubeUrl}
+      title="YouTube video player"
+      frameBorder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowFullScreen
+    />
+  );
 }
 
-function TwitterEmbed({twitterUrl}){
-  useEffect(()=>{
-    const script = document.createElement('script');
+// Twitter Embed
+function TwitterEmbed({ twitterUrl }) {
+  useEffect(() => {
+    // Load the Twitter widgets.js script
+    const script = document.createElement("script");
     script.src = "https://platform.twitter.com/widgets.js";
     script.async = true;
     document.body.appendChild(script);
+
+    // Ensure Twitter widgets are reloaded
+    script.onload = () => {
+      if (window.twttr && window.twttr.widgets) {
+        window.twttr.widgets.load();
+      }
+    };
+
     return () => {
       document.body.removeChild(script);
     };
-  },[twitterUrl])
+  }, [twitterUrl]);
 
   return (
     <blockquote className="twitter-tweet">
@@ -91,5 +149,32 @@ function TwitterEmbed({twitterUrl}){
     </blockquote>
   );
 }
+function convertToTwitterEmbedUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.hostname === "x.com") {
+      urlObj.hostname = "twitter.com";
+    }
+    return urlObj.toString();
+  } catch (error) {
+    console.error("Invalid URL", error);
+    return url;
+  }
+}
 
-export default Thoughts
+
+function convertToEmbedUrl(url) {
+  try {
+    const urlObj = new URL(url);
+    const videoId = urlObj.searchParams.get("v");
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url; // fallback if it's already an embed URL or invalid
+  } catch (error) {
+    console.error("Invalid URL", error);
+    return url;
+  }
+}
+
+export default Thoughts;

@@ -1,9 +1,11 @@
-"use client"
 
-import { useState } from "react"
+
+
 import {motion} from "motion/react"
-export default function Navbar({setIsAdd, setIsLoggedin ,isLoggedin}) {
-    
+import { useRouter } from "next/navigation"
+
+export default function Navbar() {
+    const router= useRouter()
     
     return(
         <div
@@ -13,36 +15,10 @@ export default function Navbar({setIsAdd, setIsLoggedin ,isLoggedin}) {
                 MindPalace
             </div>
             <div>
-               {isLoggedin ? 
-                <div className="flex space-x-4 text-md">
-                    <div>
-                        <motion.button 
-                        whileHover={{scale:1.1,color:"" ,backgroundColor:""} }
-                        whileTap={{scale:0.9}}
-                        transition={{duration:0.1}}
-                        className=" text-white rounded-md border px-2"
-                        onClick={()=>{
-                            setIsAdd(true)
-                        }}
-                        >
-                         Add
-                       </motion.button>
-                    </div>
-                    <div >
-                        <motion.button onClick={()=>setIsLoggedin(false)}
-                            whileHover={{scale:1.1,color:"" ,backgroundColor:""} }
-                            whileTap={{scale:0.9}}
-                            transition={{duration:0.1}}
-                            className=" text-white rounded-md border px-2"
-                            >
-                            
-                            logout 
-                        </motion.button>
-                        
-                    </div>
-                </div> :
+              
                  <div>
-                     <motion.button onClick={()=>setIsLoggedin(false)}
+                     <motion.button 
+                     onClick={()=>router.push("/api/auth/signin")}
                             whileHover={{scale:1.1,color:"" ,backgroundColor:""} }
                             whileTap={{scale:0.9}}
                             transition={{duration:0.1}}
@@ -51,7 +27,7 @@ export default function Navbar({setIsAdd, setIsLoggedin ,isLoggedin}) {
                             
                             login
                         </motion.button>
-                 </div>}
+                 </div>
                 
                
                 

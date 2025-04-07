@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
+import mongoose from "mongoose";
+import { User } from "@/app/db";
 const handler = NextAuth({
   providers:[
     CredentialsProvider({
@@ -13,20 +14,57 @@ const handler = NextAuth({
         const username=credentials?.username;
         const password=credentials?.password;
 
-        const user ={
-          id:1,
-          name:"admin",
-          email:"admin@gmail.com"
+        if (!mongoose.connection.readyState) {
+          await mongoose.connect(process.env.MONGODB_URI || "", {
+           //@ts-ignore
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+          });
         }
+      
+        // Find the user in the database
+        const user = await User.findOne({ name: username,password });
+      
+        
         if(user){
           return user;
         }
         else{
           return null;
         }
+
       }
+      
+
     })
-  ]
+  ],
+  callbacks:{
+    async jwt({ token, user }){
+      if(user){
+        token.id=user.id;
+        token.name=user.name;
+      }return token;
+    },
+    async session({ session, token }){
+      if (token) {
+        session.user = session.user || {}; // Ensure session.user exists
+        //@ts-ignore
+        session.user.id = token.id;
+        session.user.name = token.name;
+        
+      }
+      return session;
+    },
+    async redirect({url, baseUrl}){
+      return "/dashboard"
+    }
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  // pages:{
+  //   signIn:"/login"
+    
+  // }
+
 });
 
 export { handler as GET, handler as POST };

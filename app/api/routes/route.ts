@@ -37,11 +37,11 @@ async function handleSignup({ name, password }: any) {
     return NextResponse.json({ message: "User created successfully" }, { status: 200 });
 }
 
-async function handleAddBrain({ title, description, link }: any) {
-    if (!title || !description || !link) {
+async function handleAddBrain({ title, description, link,type,user}: any) {
+    if (!title || !description || !link ) {
         return NextResponse.json({ message: "All fields are required" }, { status: 400 });
     }
-    const brain = await Brain.create({ title, description, link });
+    const brain = await Brain.create({ title, description, link, type,user });
     return NextResponse.json({ message: "Brain created successfully" }, { status: 200 });
 }
 
@@ -78,12 +78,13 @@ async function handleGetBrain({ userId }: any) {
     }
 
     try {
-        const user = await User.findById(userId).populate("brains");
-        if (!user) {
-            return NextResponse.json({ message: "User not found" }, { status: 404 });
+        // Query the Brain collection directly using the user reference
+        const brains = await Brain.find({ user: userId });
+        if (!brains || brains.length === 0) {
+            return NextResponse.json({ message: "No brains found for this user" }, { status: 404 });
         }
 
-        return NextResponse.json({ brains: user.brains }, { status: 200 });
+        return NextResponse.json({ brains }, { status: 200 });
     } catch (error) {
         console.error("handleGetBrain error:", error);
         return NextResponse.json({ error: "Failed to retrieve brains" }, { status: 500 });
