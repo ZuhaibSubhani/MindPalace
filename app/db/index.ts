@@ -9,11 +9,8 @@ if (!MONGO_URI) {
 // Function to connect to the database
 export const connectDB = async () => {
   try {
-    if (!mongoose.connection.readyState) {
-      await mongoose.connect(MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+    if (mongoose.connections[0].readyState === 0) {
+      await mongoose.connect(MONGO_URI);
       console.log("MongoDB connected successfully");
     }
   } catch (error) {

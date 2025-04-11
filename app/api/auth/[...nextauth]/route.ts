@@ -10,15 +10,12 @@ const handler = NextAuth({
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req){
+      async authorize(credentials){
         const username=credentials?.username;
         const password=credentials?.password;
 
         if (!mongoose.connection.readyState) {
-          await mongoose.connect(process.env.MONGODB_URI || "", {
-           //@ts-ignore
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+          await mongoose.connect(process.env.MONGODB_URI || "", { 
           });
         }
       
@@ -48,14 +45,14 @@ const handler = NextAuth({
     async session({ session, token }){
       if (token) {
         session.user = session.user || {}; // Ensure session.user exists
-        //@ts-ignore
-        session.user.id = token.id;
-        session.user.name = token.name;
+       
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
         
       }
       return session;
     },
-    async redirect({url, baseUrl}){
+    async redirect({}){
       return "/dashboard"
     }
   },

@@ -32,16 +32,16 @@ function Add({ setIsAdd, isAdd }: Comp) {
       notes,
       link,
       videoType,
-      //@ts-ignore
+      
       user: session.user.id,
     });
-    const response=await axios.post("api/routes/",{
+    await axios.post("api/routes/",{
       action:"addBrain",
       title:title,
       description:notes,
       link:link,
       type:videoType,
-      //@ts-ignore
+      
       user:session.user.id
 
     })

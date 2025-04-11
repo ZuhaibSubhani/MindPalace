@@ -3,7 +3,7 @@
 import { useState } from "react"
 import axios from "axios"
 
-export default function signup() {
+export default function Signup() {
     const [name, setName] = useState("")
     const [password, setPassword] = useState("")
     return(

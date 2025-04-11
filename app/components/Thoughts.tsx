@@ -6,14 +6,22 @@ import { useSession } from "next-auth/react";
 import { X } from "lucide-react";
 
 // Main Thoughts Component
+type Thought = {
+  _id: string;
+  title: string;
+  description: string;
+  link: string;
+  type: string;
+  user: string;
+};
 function Thoughts() {
   const { data: session, status } = useSession();
-  const [thoughts, setThoughts] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [thoughtToDelete, setThoughtToDelete] = useState(null);
+  const [thoughts, setThoughts] = useState<Thought[]>([]);
+  const [selected, setSelected] = useState<Thought | null>(null);
+  const [thoughtToDelete, setThoughtToDelete] = useState<string | null>(null);
 
   // Fetch thoughts from the API
-  const fetchThoughts = async (userId) => {
+  const fetchThoughts = async (userId:string) => {
     try {
       const response = await axios.get(`/api/routes?action=getBrain&userId=${userId}`);
       setThoughts(response.data.brains || []);
@@ -60,13 +68,17 @@ function Thoughts() {
   );
 }
 
-// Card Grid
-function CardGrid({ thoughts, setSelected, setThoughtToDelete }) {
+type CardGridProps = {
+  thoughts: Thought[]; // Array of Thought objects
+  setSelected: (thought: Thought | null) => void; // Function to set the selected thought
+  setThoughtToDelete: (id: string | null) => void; // Function to set the thought to delete
+};
+function CardGrid({ thoughts, setSelected, setThoughtToDelete }:CardGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
       {thoughts.map((thought) => (
         <motion.div
-          key={thought.id}
+          key={thought. _id}
           className="bg-gray-900 border border-gray-700 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
@@ -82,7 +94,7 @@ function CardGrid({ thoughts, setSelected, setThoughtToDelete }) {
               <TwitterEmbed twitterUrl={convertToTwitterEmbedUrl(thought.link)} />
             )}
           </div>
-          <p className="text-gray-300">{thought.note}</p>
+          
           <button
             className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition"
             onClick={() => setSelected(thought)}
@@ -95,8 +107,12 @@ function CardGrid({ thoughts, setSelected, setThoughtToDelete }) {
   );
 }
 
-// Modal for viewing details
-function CardOpen({ thought, setSelected }) {
+type CardOpenProps = {
+  thought: Thought;
+  setSelected: (thought: Thought | null) => void; 
+};
+
+function CardOpen({ thought, setSelected }:CardOpenProps) {
   return (
     <motion.div
       className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50"
@@ -128,8 +144,14 @@ function CardOpen({ thought, setSelected }) {
   );
 }
 
-// YouTube Embed
-function YouTubeEmbed({ youtubeUrl }) {
+type YouTubeEmbedProps = {
+  youtubeUrl: string; // The YouTube video URL
+};
+
+type TwitterEmbedProps = {
+  twitterUrl: string; // The Twitter post URL
+};
+function YouTubeEmbed({ youtubeUrl }:YouTubeEmbedProps) {
   return (
     <iframe
       className="w-full h-full"
@@ -143,7 +165,7 @@ function YouTubeEmbed({ youtubeUrl }) {
 }
 
 // Twitter Embed
-function TwitterEmbed({ twitterUrl }) {
+function TwitterEmbed({ twitterUrl }:TwitterEmbedProps) {
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://platform.twitter.com/widgets.js";
@@ -168,7 +190,7 @@ function TwitterEmbed({ twitterUrl }) {
   );
 }
 
-function convertToTwitterEmbedUrl(url) {
+function convertToTwitterEmbedUrl(url:string) {
   try {
     const urlObj = new URL(url);
     if (urlObj.hostname === "x.com") {
@@ -181,7 +203,7 @@ function convertToTwitterEmbedUrl(url) {
   }
 }
 
-function convertToEmbedUrl(url) {
+function convertToEmbedUrl(url:string) {
   try {
     const urlObj = new URL(url);
     const videoId = urlObj.searchParams.get("v");
@@ -195,8 +217,11 @@ function convertToEmbedUrl(url) {
   }
 }
 
-// Delete Modal Component (now standalone and reusable)
-function DeleteModal({ onDelete, onCancel }) {
+type DeleteModalProps = {
+  onDelete: () => void; // Function to handle the delete action
+  onCancel: () => void; // Function to handle the cancel action
+};
+function DeleteModal({ onDelete, onCancel }:DeleteModalProps) {
   console.log("DeleteModal rendered");
   return (
     <motion.div

@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { Brain, User } from "../../db/index";
 import { connectDB } from "../../db/index";
 
-console.log("Hello from the API route");
+
 connectDB();
 
 export async function POST(req: NextRequest) {
@@ -24,8 +24,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+interface SignupPayload {
+    name: string;
+    password: string;
+  }
 
-async function handleSignup({ name, password }: any) {
+
+async function handleSignup({ name, password }: SignupPayload) {
     if (!name || !password) {
         return NextResponse.json({ message: "Username and password can't be empty" }, { status: 400 });
     }
@@ -33,19 +38,27 @@ async function handleSignup({ name, password }: any) {
     if (existingUser) {
         return NextResponse.json({ message: "User already exists" }, { status: 400 });
     }
-    const user = await User.create({ name, password });
+     await User.create({ name, password });
     return NextResponse.json({ message: "User created successfully" }, { status: 200 });
 }
-
-async function handleAddBrain({ title, description, link,type,user}: any) {
+interface AddBrainPayload {
+    title: string;
+    description: string;
+    link: string;
+    type: "youtube" | "twitter";
+    user: string;
+  }
+async function handleAddBrain({ title, description, link,type,user}:AddBrainPayload) {
     if (!title || !description || !link ) {
         return NextResponse.json({ message: "All fields are required" }, { status: 400 });
     }
-    const brain = await Brain.create({ title, description, link, type,user });
+     await Brain.create({ title, description, link, type,user });
     return NextResponse.json({ message: "Brain created successfully" }, { status: 200 });
 }
-
-async function handleDeleteBrain({ id }: any) {
+interface DeleteBrainPayload {
+    id: string;
+  }
+async function handleDeleteBrain({ id }: DeleteBrainPayload) {
     if (!id) {
         return NextResponse.json({ message: "Brain ID is required" }, { status: 400 });
     }
@@ -71,8 +84,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+interface GetBrainPayload {
+    userId: string | null;
+  }
 
-async function handleGetBrain({ userId }: any) {
+async function handleGetBrain({ userId }: GetBrainPayload) {
     if (!userId) {
         return NextResponse.json({ message: "User ID is required" }, { status: 400 });
     }
