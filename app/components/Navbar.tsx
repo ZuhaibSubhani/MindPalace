@@ -27,6 +27,16 @@ export default function Navbar() {
                             
                             login
                         </motion.button>
+                        <motion.button  
+                     onClick={()=>router.push("/signup")}
+                            whileHover={{scale:1.1,color:"" ,backgroundColor:""} }
+                            whileTap={{scale:0.9}}
+                            transition={{duration:0.1}}
+                            className=" text-white rounded-md border px-2 mx-2"
+                            >
+                            
+                            Signup
+                        </motion.button>
                  </div>
                 
                
