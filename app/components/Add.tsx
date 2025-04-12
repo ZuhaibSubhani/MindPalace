@@ -60,7 +60,7 @@ function Add({ setIsAdd, isAdd }: Comp) {
         >
           {/* Modal Box */}
           <div
-            className="bg-white p-6 rounded-lg shadow-lg w-96"
+            className="bg-gray-900 p-6 rounded-lg shadow-lg w-96"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-2xl font-semibold text-center mb-4">Add Item</h2>
